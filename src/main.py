@@ -55,7 +55,7 @@ def read_spreadsheet_data(spreadsheet_id, range_name):
 
 if __name__ == "__main__":
     SPREADSHEET_ID = '1yCtVanPpqrmO_nhFk4V6eecgrj1XmWSVq3w9ZclYS6Q'
-    RANGE_NAME = 'Form Responses 1!A1:AJ2'
+    RANGE_NAME = 'Form Responses 1!A1:AL5'
     
     data = read_spreadsheet_data(SPREADSHEET_ID, RANGE_NAME)
     if data:
