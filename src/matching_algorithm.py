@@ -50,8 +50,8 @@ def create_capstone_teams(
         Helper function
         Calculates compatibility scores for pairs specifically
         """
-        return (teammate_prefs.get(p1, {}).get(p2, 5) # Defaults to preference value of 5 if p1 does not have a preference for p2
-                + teammate_prefs.get(p2, {}).get(p1, 5) / 2) 
+        return ((teammate_prefs.get(p1, {}).get(p2, 5) # Defaults to preference value of 5 if p1 does not have a preference for p2
+                + teammate_prefs.get(p2, {}).get(p1, 5)) / 2) 
 
     def calc_team_compatibility_score(team):
         """
@@ -121,43 +121,65 @@ def create_capstone_teams(
     projects_sorted = sorted(projects)
 
     results = []
-    total_score = 0
+    raw_score = []
+
+    # Possible score ranges
+    min_possible = teammate_weight * 1 + project_weight * 1
+    max_possible = teammate_weight * 10 + project_weight * 5
+
+    def normalize(value):
+        """Convert a raw score to 1–100 range, clamped to avoid overflow."""
+        norm = ((value - min_possible) / (max_possible - min_possible)) * 99 + 1
+        return round(max(1, min(100, norm)), 2)
 
     for team, project in zip(teams_sorted, projects_sorted):
         t_score = calc_team_compatibility_score(team)
         p_score = calc_project_compatibility_score(team, project)
         combined = teammate_weight * t_score + project_weight * p_score
-        total_score += combined
-        results.append((team, project, combined))
+        raw_score.append(combined)
 
-    return results, total_score
+        team_normalized = normalize(combined)
+        results.append((team, project, int(round(team_normalized))))
 
+    # Overall normalized score
+    if raw_score:
+        avg_raw = sum(raw_score) / len(raw_score)
+        normalized_total = normalize(avg_raw)
+    else:
+        normalized_total = 0
+
+    return results, int(round(normalized_total))
 # ~~~ Examples ~~~
 
 """
 # NOTE: These examples do not demonstrate any scalability
-people = ["Alice", "Bob", "Charlie", "Dana"]
-teammate_prefs = {
-    "Alice": {"Bob": 9, "Charlie": 7, "Dana": 8},
-    "Bob": {"Alice": 10, "Charlie": 5, "Dana": 6},
-    "Charlie": {"Alice": 7, "Bob": 6, "Dana": 9},
-    "Dana": {"Alice": 8, "Bob": 5, "Charlie": 9}
-}
+people = ["Alice", "Bob", "Charlie", "Dana", "Eli", "Fiona"]
 projects = ["Project X", "Project Y", "Project Z"]
+
+teammate_prefs = {
+    "Alice": {"Bob": 9, "Charlie": 7, "Dana": 8, "Eli": 6, "Fiona": 4},
+    "Bob": {"Alice": 10, "Charlie": 5, "Dana": 6, "Eli": 5, "Fiona": 8},
+    "Charlie": {"Alice": 7, "Bob": 6, "Dana": 9, "Eli": 5, "Fiona": 5},
+    "Dana": {"Alice": 8, "Bob": 6, "Charlie": 10, "Eli": 5, "Fiona": 7},
+    "Eli": {"Alice": 5, "Bob": 4, "Charlie": 8, "Dana": 6, "Fiona": 10},
+    "Fiona": {"Alice": 4, "Bob": 8, "Charlie": 6, "Dana": 6, "Eli": 9},
+}
 project_prefs = {
     "Alice": {"Project X": 4, "Project Y": 5, "Project Z": 3},
     "Bob": {"Project X": 5, "Project Y": 4, "Project Z": 3},
     "Charlie": {"Project X": 3, "Project Y": 5, "Project Z": 4},
-    "Dana": {"Project X": 2, "Project Y": 5, "Project Z": 3}
+    "Dana": {"Project X": 2, "Project Y": 5, "Project Z": 3},
+    "Eli": {"Project X": 3, "Project Y": 4, "Project Z": 5},
+    "Fiona": {"Project X": 5, "Project Y": 4, "Project Z": 3},
 }
 
 results, total = create_capstone_teams(
     people, teammate_prefs, projects, project_prefs
 )
 
-print("\n=== Scalable Deterministic Balanced Results ===")
+print("\n=== Normalized Team Results (1–100) ===")
 for team, project, score in results:
-    print(f"Team: {team} → Project: {project} (Score: {round(score, 2)})")
+    print(f"Team: {team} → {project} (Score: {score}/100)")
 
-print("\nTotal Combined Score:", round(total, 2))
+print("\nOverall Total Score:", total, "/100")
 """
