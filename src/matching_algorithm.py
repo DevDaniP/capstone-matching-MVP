@@ -42,9 +42,7 @@ def create_capstone_teams(
         max_size=3,
         teammate_weight=0.7,
         project_weight=0.3
-):
-    print("DEBUG inside function:", type(project_prefs))
-    
+):  
     def calc_pair_compatibility_score(p1, p2):
         """
         Helper function
