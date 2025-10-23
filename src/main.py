@@ -109,7 +109,7 @@ def write_to_spreadsheet(spreadsheet_id, range_name, values):
 if __name__ == "__main__":
     
     SPREADSHEET_ID = '1yCtVanPpqrmO_nhFk4V6eecgrj1XmWSVq3w9ZclYS6Q'
-    INPUT_RANGE = 'Form Responses 1!A1:AL6'
+    INPUT_RANGE = 'Form Responses 1!A1:AL100'
     OUTPUT_RANGE = 'Team Results!A1' 
     
     data = read_spreadsheet_data(SPREADSHEET_ID, INPUT_RANGE)
